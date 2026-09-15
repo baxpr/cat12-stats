@@ -16,7 +16,6 @@ args = parser.parse_args()
 
 
 # is_mat_struct and walk functions for matlab structures courtesy ChatGPT-5.2
-
 def is_mat_struct(x):
     return hasattr(x, "_fieldnames") and hasattr(x, "__dict__")
 
@@ -27,18 +26,15 @@ def mat_walk(obj, path=""):
             p = f"{path}.{name}" if path else name
             yield from mat_walk(v, p)
         return
-
     if isinstance(obj, dict):
         for k, v in obj.items():
             p = f"{path}.{k}" if path else str(k)
             yield from mat_walk(v, p)
         return
-
     if isinstance(obj, (list, tuple)):
         for i, v in enumerate(obj):
             yield from mat_walk(v, f"{path}[{i}]")
         return
-
     if isinstance(obj, numpy.ndarray):
         if obj.dtype == object:
             arr = numpy.squeeze(obj)
@@ -50,7 +46,6 @@ def mat_walk(obj, path=""):
         else:
             yield (path, obj)
         return
-
     yield (path, obj)
 
 
