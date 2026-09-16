@@ -14,7 +14,7 @@ parser.add_argument('--out_dir', default='OUTPUTS')
 args = parser.parse_args()
 
 
-# is_mat_struct and walk functions for matlab structures courtesy ChatGPT-5.2
+# is_mat_struct and mat_walk functions for matlab structures courtesy ChatGPT-5.2
 def is_mat_struct(x):
     return hasattr(x, "_fieldnames") and hasattr(x, "__dict__")
 
@@ -109,4 +109,70 @@ dstats = dstats.sort_index(axis=1)
 dstats.to_csv(os.path.join(args.out_dir, 'stats.csv'), index=False)
 
 
-# FIXME Extract ROI, ROIs stats to their own files
+# Extract volumetric ROI stats
+atlases = [
+    'aal',
+    'anatomy',
+    'cobra',
+    'hammers',
+    'ibsr',
+    'lpba40',
+    'mori',
+    'neuromorphometrics',
+    ]
+
+for atlas in atlases:
+    
+    atlas_mat = getattr(info['catROI_t1']['S'], atlas)
+    
+    # ROI label with index included
+    q = zip(
+        [f'{x:03d}' for x in atlas_mat.ids],
+        atlas_mat.names,
+        )
+    labels = [f'r{a}_{b}' for a, b in q]
+    
+    # Gray matter volume
+    gm_data = pandas.DataFrame([atlas_mat.data.Vgm], columns=labels)
+    gm_data.to_csv(os.path.join(args.out_dir, f'ROI_{atlas}_Vgm.csv'), index=False)
+    
+    # Cortical thickness
+    ct_data = pandas.DataFrame([atlas_mat.data.ct], columns=labels)
+    ct_data.to_csv(os.path.join(args.out_dir, f'ROI_{atlas}_ct.csv'), index=False)
+
+
+
+# Surface ROI stats
+atlases = [
+    'aparc_DK40',
+    'aparc_HCP_MMP1',
+    'aparc_a2009s',
+    ]
+
+for atlas in atlases:
+    
+    atlas_mat = getattr(info['catROIs_t1']['S'], atlas)
+    
+    # IDs are strange for surfaces so we make our own to get
+    # ROI label with index included
+    q = zip(
+        [f'{x:03d}' for x in range(0,len(atlas_mat.names))],
+        atlas_mat.names,
+        )
+    labels = [f'r{a}_{b}' for a, b in q]
+
+    data = pandas.DataFrame([atlas_mat.data.thickness], columns=labels)
+    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_thickness.csv'), index=False)
+
+    data = pandas.DataFrame([atlas_mat.data.gyrification], columns=labels)
+    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_gyrification.csv'), index=False)
+
+    data = pandas.DataFrame([atlas_mat.data.sqrtsulc], columns=labels)
+    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_sqrtsulc.csv'), index=False)
+
+    data = pandas.DataFrame([atlas_mat.data.fractaldimension], columns=labels)
+    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_fractaldimension.csv'), index=False)
+
+
+
+    
