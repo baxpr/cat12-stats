@@ -56,8 +56,10 @@ info = {
     }
 
 # Save text version of complete outputs to file
+txt_dir = os.path.join(args.out_dir, 'TEXTDUMP')
+os.makedirs(txt_dir, exist_ok=True)
 for stem in ['cat_t1', 'catROI_t1', 'catROIs_t1']:
-    with open(os.path.join(args.out_dir, f'{stem}.txt'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(txt_dir, f'{stem}.txt'), 'w', encoding='utf-8') as f:
         for p, v in mat_walk(info[stem]):
             f.write(f'{p} = {v}\n')
 
@@ -100,30 +102,32 @@ for var in ['res_RMS_rel', 'NCR_rel', 'ICR_rel', 'IQR']:
         idx_1based = int(numpy.round((mark + 2/3) * 3 - 3))
         idx_1based = max(1, idx_1based)
     idx_1based = min(ngrades, idx_1based)
-    grad = grades[idx_1based - 1]
-    stats[f'{var}_grade'] = grad
+    grade = grades[idx_1based - 1]
+    stats[f'{var}_grade'] = grade
 
 # Save stats to file
+stats_dir = os.path.join(args.out_dir, 'STATS')
+os.makedirs(stats_dir, exist_ok=True)
 dstats = pandas.DataFrame([stats])
 dstats = dstats.sort_index(axis=1)
-dstats.to_csv(os.path.join(args.out_dir, 'stats.csv'), index=False)
+dstats.to_csv(os.path.join(stats_dir, 'qc.csv'), index=False)
 
 
 # Extract volumetric ROI stats
-atlases = [
-    'aal',
-    'anatomy',
-    'cobra',
-    'hammers',
-    'ibsr',
-    'lpba40',
-    'mori',
-    'neuromorphometrics',
-    ]
+atlases = {
+    'aal': 'aal',
+    'anat': 'anatomy',
+    'cobra': 'cobra',
+    'hamm': 'hammers',
+    'ibsr': 'ibsr',
+    'lpba40': 'lpba40',
+    'mori': 'mori',
+    'neuro': 'neuromorphometrics',
+    }
 
-for atlas in atlases:
+for k in atlases.keys():
     
-    atlas_mat = getattr(info['catROI_t1']['S'], atlas)
+    atlas_mat = getattr(info['catROI_t1']['S'], atlases[k])
     
     # ROI label with index included
     q = zip(
@@ -134,24 +138,24 @@ for atlas in atlases:
     
     # Gray matter volume
     gm_data = pandas.DataFrame([atlas_mat.data.Vgm], columns=labels)
-    gm_data.to_csv(os.path.join(args.out_dir, f'ROI_{atlas}_Vgm.csv'), index=False)
+    gm_data.to_csv(os.path.join(stats_dir, f'{k}_Vgm.csv'), index=False)
     
     # Cortical thickness
     ct_data = pandas.DataFrame([atlas_mat.data.ct], columns=labels)
-    ct_data.to_csv(os.path.join(args.out_dir, f'ROI_{atlas}_ct.csv'), index=False)
+    ct_data.to_csv(os.path.join(stats_dir, f'{k}_ct.csv'), index=False)
 
 
 
 # Surface ROI stats
 atlases = [
-    'aparc_DK40',
-    'aparc_HCP_MMP1',
-    'aparc_a2009s',
+    'DK40',
+    'HCP_MMP1',
+    'a2009s',
     ]
 
 for atlas in atlases:
     
-    atlas_mat = getattr(info['catROIs_t1']['S'], atlas)
+    atlas_mat = getattr(info['catROIs_t1']['S'], f'aparc_{atlas}')
     
     # IDs are strange for surfaces so we make our own to get
     # ROI label with index included
@@ -162,16 +166,16 @@ for atlas in atlases:
     labels = [f'r{a}_{b}' for a, b in q]
 
     data = pandas.DataFrame([atlas_mat.data.thickness], columns=labels)
-    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_thickness.csv'), index=False)
+    data.to_csv(os.path.join(stats_dir, f'{atlas}_thk.csv'), index=False)
 
     data = pandas.DataFrame([atlas_mat.data.gyrification], columns=labels)
-    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_gyrification.csv'), index=False)
+    data.to_csv(os.path.join(stats_dir, f'{atlas}_gyr.csv'), index=False)
 
     data = pandas.DataFrame([atlas_mat.data.sqrtsulc], columns=labels)
-    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_sqrtsulc.csv'), index=False)
+    data.to_csv(os.path.join(stats_dir, f'{atlas}_ssulc.csv'), index=False)
 
     data = pandas.DataFrame([atlas_mat.data.fractaldimension], columns=labels)
-    data.to_csv(os.path.join(args.out_dir, f'ROIs_{atlas}_fractaldimension.csv'), index=False)
+    data.to_csv(os.path.join(stats_dir, f'{atlas}_fracdim.csv'), index=False)
 
 
 
