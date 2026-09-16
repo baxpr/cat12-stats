@@ -1,0 +1,52 @@
+# CAT12 stats extraction https://github.com/baxpr/cat12-stats
+# Needs a container with python3 and numpy, pandas, scipy, nibabel
+---
+procyamlversion: 3.0.0-dev.0
+containers:
+  - name: fmriprep
+    path: fmriprep_25.1.4.sif
+    source: docker://nipreps/fmriprep:25.1.4
+requirements:
+  walltime: '0:01:00'
+  memory: 8G
+jobtemplate: job_template_v3.txt
+
+inputs:
+  xnat:
+    filters:
+      - type: match
+        inputs: scan_t1,assr_cat12/t1scan
+    scans:
+      - name: scan_t1
+        types: cs_T1W_3D_TFE_32 channel
+        skip_unusable: True
+        nifti: t1.nii.gz
+    assessors:
+      - name: assr_cat12
+        proctypes: cat12_ss2p0_v2
+        resources:
+          - {resource: MAT, ftype: DIR, fdest: MAT}
+          - {resource: LABEL, ftype: DIR, fdest: LABEL}
+          
+outputs:
+  - dir: STATS
+  - dir: TEXTDUMP
+  - {path: cat12-stats, type: DIR, resource: SCRIPTS}
+
+command: 
+  type: singularity_exec
+  container: fmriprep
+  args: >-
+    bash -c '
+    cd /OUTPUTS &&
+    curl -o cat12-stats.tar.gz -L https://github.com/VUIIS/cat12-stats/archive/refs/tags/v1.0.0.tar.gz &&
+    tar -zxf cat12-stats.tar.gz &&
+    mv cat12-stats-* cat12-stats &&
+    export PATH=/OUTPUTS/cat12-stats:\$PATH &&
+    extract-stats.py
+    --cat_t1_mat /INPUTS/MAT/cat_t1.mat
+    --catROI_t1_mat /INPUTS/MAT/catROI_t1.mat
+    --catROIs_t1_mat /INPUTS/MAT/catROIs_t1.mat
+    --out_dir /OUTPUTS
+    '
+
