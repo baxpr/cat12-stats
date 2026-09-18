@@ -44,8 +44,8 @@ command:
     mv cat12-stats-* cat12-stats &&
     export PATH=/OUTPUTS/cat12-stats:\$PATH &&
     extract-stats.py
-    --cat_t1_mat /INPUTS/MAT/cat_t1.mat
-    --catROI_t1_mat /INPUTS/MAT/catROI_t1.mat
-    --catROIs_t1_mat /INPUTS/MAT/catROIs_t1.mat
+    --cat_t1_mat /INPUTS/MAT/MAT/cat_t1.mat
+    --catROI_t1_mat /INPUTS/LABEL/LABEL/catROI_t1.mat
+    --catROIs_t1_mat /INPUTS/LABEL/LABEL/catROIs_t1.mat
     --out_dir /OUTPUTS
     '
