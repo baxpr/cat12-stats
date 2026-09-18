@@ -39,7 +39,7 @@ command:
   args: >-
     bash -c '
     cd /OUTPUTS &&
-    curl -o cat12-stats.tar.gz -L https://github.com/VUIIS/cat12-stats/archive/refs/tags/v1.0.0.tar.gz &&
+    curl -o cat12-stats.tar.gz -L https://github.com/baxpr/cat12-stats/archive/refs/tags/v1.0.0.tar.gz &&
     tar -zxf cat12-stats.tar.gz &&
     mv cat12-stats-* cat12-stats &&
     export PATH=/OUTPUTS/cat12-stats:\$PATH &&
@@ -49,4 +49,3 @@ command:
     --catROIs_t1_mat /INPUTS/MAT/catROIs_t1.mat
     --out_dir /OUTPUTS
     '
-
